@@ -3,8 +3,34 @@ include '../nav.php';
 include '../../controller/ProductController.php';
 $controller = new ProductController();
 $products = $controller->index();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $productId = $_POST['product_id'];
+    $productName = $_POST['product_name'];
+    $productPrice = $_POST['product_price'];
+
+    if (isset($_SESSION['cart'][$productId])) {
+        $_SESSION['cart'][$productId]['quantity'] += 1;
+    } else {
+        $_SESSION['cart'][$productId] = [
+            'id' => $productId,
+            'name' => $productName,
+            'price' => $productPrice,
+            'quantity' => 1,
+        ];
+    }
+    $msg = "Product added to cart successfully.";
+}
 ?>
 <div class="container-fluid p-0 my-5">
+    <?php if (isset($msg)) : ?>
+        <div class="alert alert-success alert-dismissible fade show mt-5 col-6 text-center" role="alert">
+            <?php echo $msg; ?>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    <?php endif; ?>
     <div class="col-md-9 m-auto">
         <div class="card mt-5 bg-light">
             <div class="card-body">
@@ -15,9 +41,10 @@ $products = $controller->index();
                                 <div><?php echo htmlspecialchars($row['name']); ?></div>
                                 <div><?php echo number_format($row['price'], 2); ?></div>
                                 <!-- <button class="btn btn-primary btn-block mt-2">Add to cart</button> -->
-                                <form method="POST" action="ProductController.php?action=add_to_cart">
+                                <form method="POST" action="dashboard.php">
                                     <input type="hidden" name="product_id" value="<?php echo $row['id']; ?>">
-                                    <input type="hidden" name="quantity" value="1">
+                                    <input type="hidden" name="product_name" value="<?php echo $row['name']; ?>">
+                                    <input type="hidden" name="product_price" value="<?php echo $row['price']; ?>">
                                     <button type="submit" class="btn btn-primary btn-block mt-2">Add to Cart</button>
                                 </form>
                             </div>
@@ -28,34 +55,6 @@ $products = $controller->index();
         </div>
     </div>
 </div>
-<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $(".add-to-cart").click(function() {
-            let productId = $(this).data("id");
-            let productName = $(this).data("name");
-            let productPrice = $(this).data("price");
-
-            // Send product details to server via AJAX
-            $.ajax({
-                url: 'add_to_cart.php',
-                type: 'POST',
-                data: {
-                    product_id: productId,
-                    name: productName,
-                    price: productPrice,
-                    quantity: 1 // Default quantity
-                },
-                success: function(response) {
-                    alert(response);
-                },
-                error: function() {
-                    alert("Failed to add product to cart.");
-                }
-            });
-        });
-    });
-</script> -->
 
 <script
     src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
